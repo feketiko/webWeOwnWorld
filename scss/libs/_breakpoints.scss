@@ -1,0 +1,80 @@
+$breakpoints: () !global;
+@mixin breakpoints($x: ()) {
+    $breakpoints: $x !global;
+}
+
+@mixin breakpoint($symbol: null) {
+    $breakpoint: null;
+    $media: null;
+    $operator: null;
+    //greater
+    @if (str-slice($symbol, 0, 2)==">") {
+        $operator: "gt";
+        $breakpoint: str-slice($symbol, 2);
+    }
+    //less
+    @else if (str-slice($symbol, 0, 2)=="<") {
+        $operator: "ls";
+        $breakpoint: str-slice($symbol, 2);
+    }
+    //less or equal
+    @else if (str-slice($symbol, 0, 2)=="<=") {
+        $operator: "lse";
+        $breakpoint: str-slice($symbol, 3);
+    }
+    //greater or equal
+    @else if (str-slice($symbol, 0, 2)==">=") {
+        $operator: "gte";
+        $breakpoint: str-slice($symbol, 3);
+    }
+    // equal
+    @else {
+        $operator: "eq";
+        $breakpoint: $symbol;
+    }
+    // media requests
+    @if ($breakpoint and map-has-key($breakpoints, $breakpoint)) {
+        $a: map-get($breakpoints, $breakpoint);
+        @if (type-of($a)=="list") {
+            $x: nth($a, 1);
+            $y: nth($a, 2);
+            @if ($x==null) {
+                @if ($operator=='gte') {
+                    $media: 'screen';
+                }
+                @else if ($operator=='lse') {
+                    $media: 'screen and (max-width: ' + $y + ')';
+                }
+                @else if ($operator=='gt') {
+                    $media: 'screen and (min-width: ' + ($y + 1) + ')';
+                }
+                @else if ($operator=='ls') {
+                    $media: 'screen and (max-width: -1px)';
+                }
+                @else {
+                    $media: 'screen and (max-width: ' + $y + ')';
+                }
+            }
+            @else {
+                @if ($operator=='gte') {
+                    $media: 'screen and (min-width: ' + $x + ')';
+                }
+                @else if ($operator=='lse') {
+                    $media: 'screen and (max-width: ' + $y + ')';
+                }
+                @else if ($operator=='gt') {
+                    $media: 'screen and (min-width: ' + ($y + 1) + ')';
+                }
+                @else if ($operator=='ls') {
+                    $media: 'screen and (max-width: ' + $x + ')';
+                }
+                @else {
+                    $media: 'screen and (min-width: ' + $x + ') and (max-width: ' + $y + ')';
+                }
+            }
+        }
+        @media #{$media} {
+            @content;
+        }
+    }
+}
